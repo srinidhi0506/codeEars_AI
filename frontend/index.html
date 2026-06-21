@@ -32,7 +32,91 @@
       </svg>
     </header>
 
-    <!-- ===== Console ===== -->
+    <!-- ===== Pipeline ===== -->
+    <section class="pipeline-wrap">
+      <div class="pipeline" aria-hidden="false">
+        <div class="pipe-step">
+          <span class="pipe-icon">{ }</span>
+          <span class="pipe-label">Code</span>
+        </div>
+        <span class="pipe-arrow">→</span>
+        <div class="pipe-step">
+          <span class="pipe-icon">🗣</span>
+          <span class="pipe-label">Explain</span>
+        </div>
+        <span class="pipe-arrow">→</span>
+        <div class="pipe-step">
+          <span class="pipe-icon">🎧</span>
+          <span class="pipe-label">Listen</span>
+        </div>
+        <span class="pipe-arrow">→</span>
+        <div class="pipe-step">
+          <span class="pipe-icon">?</span>
+          <span class="pipe-label">Quiz</span>
+        </div>
+        <span class="pipe-arrow">→</span>
+        <div class="pipe-step">
+          <span class="pipe-icon">⌥</span>
+          <span class="pipe-label">Diagram</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== Why CodeEars ===== -->
+    <section class="why-section">
+      <h2 class="why-title">Why CodeEars?</h2>
+      <p class="why-sub">More than a code explainer — a way to understand code with your ears, not just your eyes.</p>
+
+      <div class="why-grid">
+        <div class="why-card">
+          <span class="why-icon">🔊</span>
+          <h3>Voice-first</h3>
+          <p>Real read-aloud explanations, not just text — built for low-vision devs, dyslexic readers, or anyone multitasking.</p>
+        </div>
+        <div class="why-card">
+          <span class="why-icon">🌍</span>
+          <h3>10 languages</h3>
+          <p>Explanations and interview questions generated in English, Hindi, Spanish, Tamil, Telugu, and more.</p>
+        </div>
+        <div class="why-card">
+          <span class="why-icon">📊</span>
+          <h3>Real flowcharts</h3>
+          <p>Diagrams built from your code's actual variables and conditions — not a generic template.</p>
+        </div>
+        <div class="why-card">
+          <span class="why-icon">🎯</span>
+          <h3>Interview practice</h3>
+          <p>Four real interview-style questions about your exact code, with answers hidden until you're ready.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== Sample (static, no API call) ===== -->
+    <section class="sample-section">
+      <h2 class="why-title">Sample analysis</h2>
+      <p class="why-sub">See what CodeEars produces — no need to wait for a live call.</p>
+
+      <div class="sample-card">
+        <p class="sample-kicker">Code</p>
+        <pre class="sample-code">function isPalindrome(str) {
+  const clean = str.toLowerCase().replace(/[^a-z0-9]/g, '');
+  return clean === clean.split('').reverse().join('');
+}</pre>
+
+        <div class="sample-grid">
+          <div>
+            <p class="sample-kicker">Spoken explanation</p>
+            <p class="sample-text">This function checks whether a string reads the same forwards and backwards. It first cleans the input by lowercasing it and stripping out anything that isn't a letter or number, so punctuation and spacing don't get in the way. Then it compares the cleaned string to its own reverse — if they match, it's a palindrome.</p>
+          </div>
+          <div>
+            <p class="sample-kicker">Interview question</p>
+            <p class="sample-text">What happens with an empty string, and why does the regex strip step matter for inputs like "A man, a plan, a canal: Panama"?</p>
+          </div>
+        </div>
+      </div>
+
+      <a href="#console" class="sample-cta">Try it yourself ↓</a>
+    </section>
     <main class="console" id="console">
 
       <div class="console-topline">
