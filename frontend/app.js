@@ -247,23 +247,88 @@ const SPEECH_LANG_MAP = {
   pt: 'pt-PT',
 };
 
-playBtn.addEventListener('click', () => {
-  if (!currentExplanation) return;
-  stopSpeaking();
+let speechQueue = [];
+let speechIndex = 0;
 
-  const utterance = new SpeechSynthesisUtterance(currentExplanation);
+// Chrome (especially on Windows) frequently throws "synthesis-failed" on
+// long single utterances. Splitting into sentence-sized chunks and
+// speaking them sequentially avoids the bug and is also more robust to
+// the queue stalling out.
+function splitIntoChunks(text) {
+  const sentences = text.match(/[^.!?]+[.!?]+|\s*[^.!?]+$/g) || [text];
+  const chunks = [];
+  let current = '';
+  for (const sentence of sentences) {
+    if ((current + sentence).length > 180 && current) {
+      chunks.push(current.trim());
+      current = sentence;
+    } else {
+      current += sentence;
+    }
+  }
+  if (current.trim()) chunks.push(current.trim());
+  return chunks;
+}
+
+function speakNextChunk() {
+  if (speechIndex >= speechQueue.length) {
+    vuMeter.classList.remove('playing');
+    return;
+  }
+
+  const utterance = new SpeechSynthesisUtterance(speechQueue[speechIndex]);
   const langTag = SPEECH_LANG_MAP[languageSelect.value] || 'en-US';
   utterance.lang = langTag;
 
-  // Try to pick a voice that actually matches the language, if the browser has one
   const voices = window.speechSynthesis.getVoices();
   const match = voices.find((v) => v.lang === langTag) || voices.find((v) => v.lang.startsWith(langTag.split('-')[0]));
   if (match) utterance.voice = match;
 
-  utterance.onstart = () => vuMeter.classList.add('playing');
-  utterance.onend = () => vuMeter.classList.remove('playing');
-  utterance.onerror = () => vuMeter.classList.remove('playing');
+  utterance.onstart = () => {
+    setStatus('');
+    vuMeter.classList.add('playing');
+  };
+
+  utterance.onend = () => {
+    speechIndex += 1;
+    speakNextChunk();
+  };
+
+  utterance.onerror = (e) => {
+    // "canceled" and "interrupted" happen normally when Stop is clicked
+    // or Play is clicked again mid-speech - not real failures.
+    if (e.error === 'canceled' || e.error === 'interrupted') {
+      vuMeter.classList.remove('playing');
+      return;
+    }
+    console.error('Speech synthesis error on chunk', speechIndex, ':', e.error);
+    // Skip the broken chunk and try to continue rather than stopping dead
+    speechIndex += 1;
+    if (speechIndex < speechQueue.length) {
+      speakNextChunk();
+    } else {
+      vuMeter.classList.remove('playing');
+      setStatus('Some of the explanation could not be read aloud.');
+    }
+  };
+
   window.speechSynthesis.speak(utterance);
+}
+
+playBtn.addEventListener('click', () => {
+  if (!currentExplanation) return;
+
+  const wasSpeaking = window.speechSynthesis.speaking || window.speechSynthesis.pending;
+  window.speechSynthesis.cancel();
+  vuMeter.classList.remove('playing');
+
+  // Chrome has a known race condition where calling speak() in the same
+  // tick as cancel() silently fails to start. A short delay avoids it.
+  setTimeout(() => {
+    speechQueue = splitIntoChunks(currentExplanation);
+    speechIndex = 0;
+    speakNextChunk();
+  }, wasSpeaking ? 150 : 30);
 });
 
 stopBtn.addEventListener('click', stopSpeaking);
