@@ -1,3 +1,8 @@
+// ---------- entrance animation ----------
+window.addEventListener('DOMContentLoaded', () => {
+  document.querySelector('.wrap')?.classList.add('loaded');
+});
+
 // ---------- hero waveform (decorative) ----------
 (function renderHeroWave() {
   const svg = document.getElementById('hero-wave');
@@ -27,6 +32,7 @@ if (window.mermaid) {
 
 // ---------- elements ----------
 const modeButtons = document.querySelectorAll('.mode-btn');
+const modePill = document.getElementById('mode-pill');
 const submitBtn = document.getElementById('submit-btn');
 const runBtnLabel = submitBtn.querySelector('.run-btn-label');
 const codeInput = document.getElementById('code-input');
@@ -47,10 +53,23 @@ const statusEl = document.getElementById('status');
 let mode = 'explain';
 let currentExplanation = null;
 
+// ---------- sliding tab pill ----------
+function positionModePill(btn) {
+  if (!modePill) return;
+  modePill.style.width = `${btn.offsetWidth}px`;
+  modePill.style.transform = `translateX(${btn.offsetLeft - 3}px)`;
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  const activeBtn = document.querySelector('.mode-btn.active');
+  if (activeBtn) positionModePill(activeBtn);
+});
+
 // ---------- mode switching ----------
 modeButtons.forEach((btn) => {
   btn.addEventListener('click', () => {
     mode = btn.dataset.mode;
+    positionModePill(btn);
 
     modeButtons.forEach((b) => {
       const isActive = b === btn;
@@ -80,9 +99,10 @@ submitBtn.addEventListener('click', async () => {
     return;
   }
 
-  setStatus('Thinking…');
+  setStatus('');
   submitBtn.disabled = true;
   stopSpeaking();
+  showSkeleton();
 
   try {
     if (mode === 'explain') {
@@ -90,7 +110,6 @@ submitBtn.addEventListener('click', async () => {
     } else {
       await runQuiz(code);
     }
-    setStatus('');
   } catch (err) {
     console.error(err);
     setStatus('Something went wrong. Check the server is running and try again.');
@@ -98,6 +117,16 @@ submitBtn.addEventListener('click', async () => {
     submitBtn.disabled = false;
   }
 });
+
+function showSkeleton() {
+  const target = mode === 'explain' ? explainOutput : quizOutput;
+  target.innerHTML = `
+    <div class="skeleton-line"></div>
+    <div class="skeleton-line"></div>
+    <div class="skeleton-line"></div>
+    <div class="skeleton-line"></div>
+  `;
+}
 
 async function runExplain(code) {
   const depth = depthSelect.value;
@@ -114,7 +143,7 @@ async function runExplain(code) {
 
   const clean = sanitizeForSpeech(data.explanation);
 
-  explainOutput.innerHTML = `<p>${escapeHtml(clean).replace(/\n/g, '<br>')}</p>`;
+  explainOutput.innerHTML = `<p class="output-enter">${escapeHtml(clean).replace(/\n/g, '<br>')}</p>`;
   voiceControls.classList.remove('hidden');
   diagramBtn.classList.remove('hidden');
   currentExplanation = clean;
@@ -188,6 +217,7 @@ async function runQuiz(code) {
   data.questions.forEach((q, i) => {
     const card = document.createElement('div');
     card.className = 'question-card';
+    card.style.animationDelay = `${i * 0.08}s`;
     card.innerHTML = `
       <p class="question">${i + 1}. ${escapeHtml(q.question)}</p>
       <button class="reveal-btn">Reveal answer</button>
